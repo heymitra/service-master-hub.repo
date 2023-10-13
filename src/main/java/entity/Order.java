@@ -36,5 +36,10 @@ public class Order extends BaseEntity<Long> {
 
     @Enumerated(EnumType.STRING)
     private OrderStatusEnum status;
+
+    @ManyToOne // Many orders can belong to one customer
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
 }
+
 
