@@ -7,6 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,11 +30,14 @@ public class SubService extends BaseEntity<Long> {
     @NotNull(message = "cannot be null")
     private String description;
 
+    @ManyToMany(mappedBy = "subServices")
+    private List<Expert> experts = new ArrayList<>();
+
     @Override
     public String toString() {
         return "id = " + id +
-                "SubService Name = " + subServiceName +
-                "Basic Price = " + basicPrice +
-                "Description = " + description + "\n-------------";
+                "\nSubService Name = " + subServiceName +
+                "\nBasic Price = " + basicPrice +
+                "\nDescription = " + description + "\n-------------";
     }
 }
