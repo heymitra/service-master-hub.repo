@@ -1,6 +1,10 @@
 import entity.*;
+import entity.enumeration.ExpertStatusEnum;
 import entity.enumeration.OrderStatusEnum;
-import exception.*;
+import exception.InvalidFormatException;
+import exception.ServiceNotFoundException;
+import exception.SubServiceNotFoundException;
+import exception.UserNotFoundException;
 import repository.dto.ExpertDTO;
 import util.ApplicationContext;
 import util.InputUtility;
@@ -20,20 +24,20 @@ public class Main {
 
         // امکان افزودن کاربر جدید با توجه به نقش (متخصص/مشتری)
         // add customer
-        System.out.println("Adding new user:\n\tCustomer:");
-        String name = InputUtility.getValidName("\t\tName: ");
-        String surname = InputUtility.getValidName("\t\tSurname: ");
-        String email = InputUtility.getUserInput("\t\tEmail: ");
-        String password = InputUtility.getUserInput("\t\tPassword: ");
-        Customer customer = new Customer();
-        customer.setName(name);
-        customer.setSurname(surname);
-        customer.setEmail(email);
-        customer.setPassword(password);
+//        System.out.println("Adding new user:\n\tCustomer:");
+//        String name = InputUtility.getValidName("\t\tName: ");
+//        String surname = InputUtility.getValidName("\t\tSurname: ");
+//        String email = InputUtility.getUserInput("\t\tEmail: ");
+//        String password = InputUtility.getUserInput("\t\tPassword: ");
+//        Customer customer = new Customer();
+//        customer.setName(name);
+//        customer.setSurname(surname);
+//        customer.setEmail(email);
+//        customer.setPassword(password);
+//
+//        ApplicationContext.getUserService().save(customer);
 
-        ApplicationContext.getUserService().save(customer);
-
-//        // add expert
+        // add expert
 //        System.out.println("Adding new user:\n\tExpert:");
 //        String name = InputUtility.getValidName("\t\tName: ");
 //        String surname = InputUtility.getValidName("\t\tSurname: ");
@@ -49,9 +53,22 @@ public class Main {
 //        expert.setPassword(password);
 //        expert.setPersonalPhoto(personalPhoto);
 //        ApplicationContext.getUserService().save(expert);
-//
-//
-//        // قابلیت تغییر رمز عبور برای کاربران
+
+        // approve
+//        System.out.println("Approve Expert");
+//        List<ExpertDTO> newExperts = ApplicationContext.getExpertService().findExpertsByStatus(ExpertStatusEnum.NEW);
+//        Long expertId = InputUtility.getValidExpertId(newExperts);
+//        ApplicationContext.getExpertService().findById(expertId)
+//                .ifPresent(expert -> {
+//                    expert.setExpertStatus(ExpertStatusEnum.APPROVED);
+//                    ApplicationContext.getExpertService().update(expert);
+//                    System.out.println("Expert Approved.");
+//                });
+//        if (!ApplicationContext.getExpertService().findById(expertId).isPresent()) {
+//            System.out.println("No Such User");
+//        }
+
+        // قابلیت تغییر رمز عبور برای کاربران
 //        String username = "test@gmail.com";
 //        SecurityContext.username = username;
 //        User user = ApplicationContext.getUserService().findUserByEmail(username);
@@ -64,28 +81,25 @@ public class Main {
 //        }
 //        try {
 //            ApplicationContext.getUserService().changePassword(user, newPass);
-//        } catch (InvalidPasswordException ipe) {
-//            System.err.println("Invalid password: " + ipe.getMessage());
+//        } catch (InvalidFormatException ife) {
+//            System.err.println("Invalid password: " + ife.getMessage());
 //        }
-//
-//        // ثبت خدمات یا زیر خدمات جدید برای خدمت های تعریف شده (مدیر)
-//        // load all existing services
+
+        // ثبت خدمات یا زیر خدمات جدید برای خدمت های تعریف شده (مدیر)
+        // load all existing services
 //        Map<Long, String> serviceById = loadAllExistingServices();
 //        System.out.println("Existing Services: (id. service name)");
 //        serviceById.forEach((id, service) ->
 //                System.out.println(id + ". " + service));
 //        // add new service
 //        SecurityContext.username = "admin@gmail.com";
-//        if (SecurityContext.username.equals("admin@gmail.com")) {
-//            System.out.println("\nAdd New Service: ");
-//            String serviceName = InputUtility.getValidName("Service Name: ");
-//            Service service = new Service();
-//            service.setServiceName(serviceName);
-//            ApplicationContext.getServiceService().save(service);
-//        } else
-//            System.out.println("You do not have access to this section. ");
-//
-//        // add new sub-service
+//        System.out.println("\nAdd New Service: ");
+//        String serviceName = InputUtility.getValidName("Service Name: ");
+//        Service service = new Service();
+//        service.setServiceName(serviceName);
+//        ApplicationContext.getServiceService().save(service);
+
+        // add new sub-service
 //        SubService subService = new SubService();
 //        System.out.println("Existing Services: (id. service name)");
 //        Map<Long, String> serviceById = loadAllExistingServices();
@@ -106,10 +120,10 @@ public class Main {
 //        subService.setDescription(description);
 //        subService.setBasicPrice(basePrice);
 //        ApplicationContext.getSubServiceService().save(subService);
-//
-//        // اضافه و حذف متخصصان از زیر خدمت های موجود در سیستم (مدیر)
-//        // add
-//        List<ExpertDTO> expertDTOS = ApplicationContext.getUserService().safeLoadAllExperts();
+
+        // اضافه و حذف متخصصان از زیر خدمت های موجود در سیستم (مدیر)
+        // add
+//        List<ExpertDTO> expertDTOS = ApplicationContext.getExpertService().safeLoadAllExperts();
 //        Long expertId = InputUtility.getValidExpertId(expertDTOS);
 //        System.out.println("Existing Services: (id. service name)");
 //        Map<Long, String> serviceById = loadAllExistingServices();
@@ -125,8 +139,8 @@ public class Main {
 //        } catch (UserNotFoundException | SubServiceNotFoundException e) {
 //            System.out.println(e.getMessage());
 //        }
-//        // remove
-//        List<ExpertDTO> expertDTOS = ApplicationContext.getUserService().safeLoadAllExperts();
+        // remove
+//        List<ExpertDTO> expertDTOS = ApplicationContext.getExpertService().safeLoadAllExperts();
 //        Long expertId = InputUtility.getValidExpertId(expertDTOS);
 //        Map<Long, String> serviceById = getExistingServices();
 //        Long serviceId = InputUtility.getUserInputForServiceId(serviceById, "Enter the ID of the expert to remove from a sub-service: ");
@@ -139,8 +153,8 @@ public class Main {
 //        } catch (UserNotFoundException | SubServiceNotFoundException e) {
 //            System.out.println(e.getMessage());
 //        }
-//
-//        // order
+
+        // order
 //        String email = "customer@gmail.com";
 //        SecurityContext.username = email;
 //        Order order = new Order();
@@ -164,9 +178,9 @@ public class Main {
 //        OrderStatusEnum status = OrderStatusEnum.WAITING_FOR_OFFERS;
 //        order.setStatus(status);
 //        ApplicationContext.getOrderService().save(order);
-//
-//
-//        // توضیح و قیمت پایه باید قابلیت ویرایش داشته باشند
+
+
+        // توضیح و قیمت پایه باید قابلیت ویرایش داشته باشند
 //        System.out.println("Edit description/base price");
 //        Map<Long, String> serviceById = getExistingServices();
 //        Long serviceId = InputUtility.getUserInputForServiceId(serviceById, "Service ID: ");
@@ -176,7 +190,7 @@ public class Main {
 //        Long subServiceId = InputUtility.getValidSubServiceId(subServicesByServiceId);
 //        System.out.println("Edit description/base price");
 //        String newDescription = InputUtility.getUserInput("New description: ");
-//        double updatedBasePrice = InputUtility.getPositiveDoubleFromUser("Updated base price: ");
+//        double updatedBasePrice = InputUtility.getRangedDoubleFromUser(0, "Updated base price: ");
 //        Optional<SubService> optionalSubService = ApplicationContext.getSubServiceService().findById(subServiceId);
 //
 //        if (optionalSubService.isPresent()) {
