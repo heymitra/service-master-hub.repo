@@ -16,6 +16,7 @@ import java.util.List;
 @Entity
 @Table(name = "services")
 public class Service extends BaseEntity<Long> {
+    @Column(unique = true)
     private String serviceName;
 
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)
