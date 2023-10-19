@@ -1,9 +1,13 @@
 package util;
 
 import entity.SubService;
+import exception.FileReadException;
+import exception.PhotoSizeException;
 import repository.dto.ExpertDTO;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -57,57 +61,58 @@ public class InputUtility {
         return userInput;
     }
 
-    public static double getPositiveDoubleFromUser(String prompt) {
-        double amount;
+    public static double getRangedDoubleFromUser(double minValue, String prompt) {
+        double userInput;
 
-        while (true) {
-            try {
+        do {
+            System.out.print(prompt);
+            while (!scanner.hasNextDouble()) {
+                System.out.println("Invalid input. Please enter a valid double number.");
                 System.out.print(prompt);
-                amount = scanner.nextInt();
-                scanner.nextLine();
-
-                if (amount > 0) {
-                    break;
-                } else {
-                    System.out.println("Invalid input. Please enter a positive integer.");
-                }
-            } catch (InputMismatchException e) {
-                System.out.println("Invalid input. Please enter a valid integer.");
-                scanner.next();  // Clear the invalid input
+                scanner.next();
             }
-        }
+            userInput = scanner.nextDouble();
+            if (userInput <= minValue) {
+                System.out.println("Please enter a number greater than " + minValue + ".");
+            }
+        } while (userInput <= minValue);
 
-        return amount;
+        scanner.close();
+        return userInput;
     }
 
-    public static Path getPhotoPath(String prompt) {
+    public static byte[] getPhoto(String prompt) {
         System.out.print(prompt);
         String photoPath = scanner.nextLine().trim();
-
-        // Validate the file path and check if it's a valid image
         if (!isValidPath(photoPath) || !isImageFile(photoPath)) {
             System.out.println("Invalid or non-image file path. Please enter a valid path to your photo.");
             return null;
         }
 
-        return Paths.get(photoPath);
+        try {
+            byte[] personalPhoto = Files.readAllBytes(Paths.get(photoPath));
+            if (personalPhoto.length > 300 * 1024)
+                throw new PhotoSizeException("Photo size exceeds the maximum allowed size of 300 KB.");
+            return personalPhoto;
+        } catch (PhotoSizeException e) {
+            System.err.println("Error: " + e.getMessage());
+            return null;
+        } catch (IOException e) {
+            throw new FileReadException("Unable to read the personal photo file.", e);
+        }
     }
 
-    // Method to validate the file path
     private static boolean isValidPath(String path) {
-        // Check if the path is not empty
         return !path.isEmpty();
     }
 
-    // Method to check if the path points to a valid image file
     private static boolean isImageFile(String path) {
         File file = new File(path);
         return file.exists() && file.isFile() && isImageExtension(path);
     }
 
-    // Method to check if the file has an image extension
     private static boolean isImageExtension(String path) {
-        String[] imageExtensions = {".jpg"}; // Add more extensions if needed
+        String[] imageExtensions = {".jpg"};
         for (String extension : imageExtensions) {
             if (path.toLowerCase().endsWith(extension)) {
                 return true;
@@ -141,7 +146,7 @@ public class InputUtility {
     public static Long getValidExpertId(List<ExpertDTO> expertDTOS) {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Available Experts:");
-        expertDTOS.forEach(expertDTO -> System.out.println("ID: " + expertDTO.getId() + ", Name: " + expertDTO.getName()));
+        expertDTOS.forEach(System.out::println);
         Long expertId;
         while (true) {
             System.out.print("Enter the ID of the expert to assign a sub-service: ");
