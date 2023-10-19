@@ -10,11 +10,4 @@ public class ServiceServiceImpl extends BaseServiceImpl<Service, Long, ServiceRe
     public ServiceServiceImpl(ServiceRepository repository) {
         super(repository);
     }
-
-    @Override
-    public Service save(String name) {
-        Service service = new Service();
-        service.setServiceName(name);
-        return super.save(service);
-    }
 }

@@ -2,17 +2,12 @@ package service.impl;
 
 import base.service.impl.BaseServiceImpl;
 import entity.Expert;
-import entity.Service;
 import entity.SubService;
-import entity.User;
 import exception.SubServiceAlreadyExistsException;
 import exception.SubServiceNotFoundException;
-import exception.UserNotFoundException;
 import repository.SubServiceRepository;
 import service.SubServiceService;
 import util.ApplicationContext;
-
-import exception.ServiceNotFoundException;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,25 +19,11 @@ public class SubServiceServiceImpl extends BaseServiceImpl<SubService, Long, Sub
     }
 
     @Override
-    public SubService save(String name, double basePrice, String description, Long serviceId) {
-        SubService subService = new SubService();
-
-        subService.setSubServiceName(name);
-        Optional<SubService> existingSubService = findBySubServiceName(name);
-
+    public SubService save(SubService subService) {
+        String subServiceName = subService.getSubServiceName();
+        Optional<SubService> existingSubService = findBySubServiceName(subServiceName);
         if (existingSubService.isPresent()) {
-            throw new SubServiceAlreadyExistsException(name);
-        }
-
-        subService.setBasicPrice(basePrice);
-        subService.setDescription(description);
-
-        Optional<Service> optionalService = ApplicationContext.getServiceService().findById(serviceId);
-        if (optionalService.isPresent()) {
-            Service service = optionalService.get();
-            subService.setService(service);
-        } else {
-            throw new ServiceNotFoundException(serviceId);
+            throw new SubServiceAlreadyExistsException(subServiceName);
         }
         return repository.save(subService);
     }
