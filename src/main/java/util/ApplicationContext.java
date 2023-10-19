@@ -24,9 +24,6 @@ public class ApplicationContext {
     private static OrderRepository orderRepository;
     private static OrderService orderService;
 
-    private static PasswordRepository passwordRepository;
-    private static PasswordService passwordService;
-
     private static ExpertRepository expertRepository;
     private static ExpertService expertService;
 
@@ -46,9 +43,6 @@ public class ApplicationContext {
         orderRepository = new OrderRepositoryImpl(em);
         orderService = new OrderServiceImpl(orderRepository);
 
-        passwordRepository = new PasswordRepositoryImpl(em);
-        passwordService = new PasswordServiceImpl(passwordRepository);
-
         expertRepository = new ExpertRepositoryImpl(em);
         expertService = new ExpertServiceImpl(expertRepository);
     }
@@ -57,6 +51,5 @@ public class ApplicationContext {
     public static ServiceService getServiceService() {return serviceService;}
     public static SubServiceService getSubServiceService() {return subServiceService;}
     public static OrderService getOrderService() {return orderService;}
-    public static PasswordService getPasswordService() {return passwordService;}
     public static ExpertService getExpertService() {return expertService;}
 }
