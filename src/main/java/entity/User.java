@@ -25,13 +25,11 @@ public abstract class User extends BaseEntity<Long> {
     private String surname;
 
     @NotNull(message = "cannot be null")
-    @Column(unique = true)
-    private String email;
+    private String password;
 
     @NotNull(message = "cannot be null")
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "password_id")
-    private Password password;
+    @Column(unique = true)
+    private String email;
 
     private LocalDateTime registrationDateTime;
 }
