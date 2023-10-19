@@ -1,9 +1,16 @@
 package service;
 
+import base.service.BaseService;
 import entity.Expert;
+import entity.enumeration.ExpertStatusEnum;
+import repository.dto.ExpertDTO;
 
+import java.util.List;
 import java.util.Optional;
 
-public interface ExpertService {
+public interface ExpertService extends BaseService<Expert, Long> {
     Optional<Expert> findById(Long id);
+    List<ExpertDTO> findExpertsByStatus(ExpertStatusEnum expertStatus);
+    List<ExpertDTO> safeLoadAllExperts();
+
 }

@@ -8,6 +8,5 @@ import java.util.List;
 
 public interface UserRepository extends BaseRepository<User,Long> {
     User findUserByEmail(String email);
-    List<ExpertDTO> safeLoadAllExperts();
     void changePassword(User user, String newPass);
 }

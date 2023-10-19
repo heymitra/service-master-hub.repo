@@ -35,14 +35,6 @@ public class UserRepositoryImpl extends BaseRepositoryImpl<User, Long>
     }
 
     @Override
-    public List<ExpertDTO> safeLoadAllExperts() {
-        TypedQuery<ExpertDTO> query = entityManager.createQuery(
-                "SELECT new repository.dto.ExpertDTO(e.id, e.name, e.surname, e.email, e.personalPhoto, e.score, e.expertStatus) FROM Expert e",
-                ExpertDTO.class);
-        return query.getResultList();
-    }
-
-    @Override
     public void changePassword(User user, String newPass) {
         user.setPassword(newPass);
         EntityTransaction transaction = entityManager.getTransaction();

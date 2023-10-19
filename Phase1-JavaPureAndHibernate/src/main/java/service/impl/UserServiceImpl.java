@@ -8,10 +8,8 @@ import entity.enumeration.ExpertStatusEnum;
 import exception.InvalidFormatException;
 import repository.UserRepository;
 import service.UserService;
-import repository.dto.ExpertDTO;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.regex.Pattern;
 
 public class UserServiceImpl extends BaseServiceImpl<User, Long, UserRepository>
@@ -47,11 +45,6 @@ public class UserServiceImpl extends BaseServiceImpl<User, Long, UserRepository>
     @Override
     public User findUserByEmail(String email) {
         return repository.findUserByEmail(email);
-    }
-
-    @Override
-    public List<ExpertDTO> safeLoadAllExperts() {
-        return repository.safeLoadAllExperts();
     }
 
     private boolean isValidEmail(String email) throws InvalidFormatException {
