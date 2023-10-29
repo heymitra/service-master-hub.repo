@@ -5,8 +5,6 @@ import com.example.serviceprovider.service.dto.ExpertDTO;
 import com.example.serviceprovider.model.enumeration.ExpertStatusEnum;
 import com.example.serviceprovider.repository.ExpertRepository;
 import com.example.serviceprovider.service.ExpertService;
-import com.example.serviceprovider.validation.LogInfoValidator;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,11 +15,9 @@ import java.util.stream.Collectors;
 @Service
 public class ExpertServiceImpl implements ExpertService {
     private final ExpertRepository repository;
-    private final LogInfoValidator logInfoValidator;
 
     public ExpertServiceImpl(ExpertRepository repository) {
         this.repository = repository;
-        logInfoValidator = new LogInfoValidator();
     }
 
     @Override
@@ -45,20 +41,16 @@ public class ExpertServiceImpl implements ExpertService {
     }
 
     @Override
-    public Expert saveOrUpdate(Expert expert) {
-        try {
-            if (logInfoValidator.isValidEmail(expert.getEmail()) && logInfoValidator.isValidPassword(expert.getPassword())) {
-                boolean isFirstTimeSave = expert.getId() == null;
-                if (isFirstTimeSave && logInfoValidator.isPhotoValid(expert.getPersonalPhoto())) {
-                    expert.setRegistrationDateTime(LocalDateTime.now());
-                    expert.setScore(0);
-                    expert.setExpertStatus(ExpertStatusEnum.NEW);
-                }
-            }
-        } catch (DataIntegrityViolationException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public Expert save(Expert expert) {
+        expert.setRegistrationDateTime(LocalDateTime.now());
+        expert.setScore(0);
+        expert.setExpertStatus(ExpertStatusEnum.NEW);
+
+        return repository.save(expert);
+    }
+
+    @Override
+    public Expert update(Expert expert) {
         return repository.save(expert);
     }
 
@@ -67,7 +59,7 @@ public class ExpertServiceImpl implements ExpertService {
         Optional<Expert> expertOptional = findById(expertId);
         expertOptional.ifPresent(expert -> {
             expert.setExpertStatus(ExpertStatusEnum.APPROVED);
-            saveOrUpdate(expert);
+            update(expert);
         });
         return expertOptional.orElse(null);
     }

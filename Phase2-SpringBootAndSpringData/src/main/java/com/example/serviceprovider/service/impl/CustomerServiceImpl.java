@@ -20,18 +20,13 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Customer saveOrUpdate(Customer customer) {
-        boolean isFirstTimeRegistration = customer.getRegistrationDateTime() == null;
-        try {
-            if (logInfoValidator.isValidEmail(customer.getEmail()) && logInfoValidator.isValidPassword(customer.getPassword())) {
-                if (isFirstTimeRegistration) {
-                    customer.setRegistrationDateTime(LocalDateTime.now());
-                }
-                return repository.save(customer);
-            }
-        } catch (DataIntegrityViolationException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public Customer save(Customer customer) {
+        customer.setRegistrationDateTime(LocalDateTime.now());
+        return repository.save(customer);
+    }
+
+    @Override
+    public Customer update(Customer customer) {
+        return repository.save(customer);
     }
 }

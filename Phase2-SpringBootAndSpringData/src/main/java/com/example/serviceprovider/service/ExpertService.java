@@ -9,6 +9,7 @@ import java.util.Optional;
 public interface ExpertService {
     List<ExpertDTO> findAllExperts();
     Optional<Expert> findById(Long id);
-    Expert saveOrUpdate(Expert expert);
+    Expert save(Expert expert);
+    Expert update(Expert expert);
     Expert approveExpert(Long id);
 }
