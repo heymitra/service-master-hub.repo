@@ -4,10 +4,10 @@ import com.example.serviceprovider.model.Customer;
 import com.example.serviceprovider.repository.CustomerRepository;
 import com.example.serviceprovider.service.CustomerService;
 import com.example.serviceprovider.validation.LogInfoValidator;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
@@ -28,5 +28,10 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public Customer update(Customer customer) {
         return repository.save(customer);
+    }
+
+    @Override
+    public Optional<Customer> findById(Long id) {
+        return repository.findById(id);
     }
 }
