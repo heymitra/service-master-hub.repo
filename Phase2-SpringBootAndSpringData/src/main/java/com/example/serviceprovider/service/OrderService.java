@@ -7,12 +7,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface OrderService {
-    Order saveOrder(Order order);
-    Order save(Order order);
+    Order save(Order order, Long subServiceId, Long customerId);
+    Order update(Order order);
     Optional<Order> findById(Long id);
     List<Order> findAll();
     void deleteById(Long orderId);
     List<Order> getOrdersForExpert(Expert expert);
-    void startOrder(Order order);
-    void completeOrder(Order order);
 }
