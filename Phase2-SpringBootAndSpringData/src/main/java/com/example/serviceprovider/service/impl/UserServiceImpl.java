@@ -1,6 +1,5 @@
 package com.example.serviceprovider.service.impl;
 
-import com.example.serviceprovider.exception.InvalidFormatException;
 import com.example.serviceprovider.model.User;
 import com.example.serviceprovider.repository.UserRepository;
 import com.example.serviceprovider.service.UserService;
@@ -21,6 +20,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User update(User user){
+        return repository.save(user);
+    }
+
+    @Override
     public Optional<User> findById(Long id) {
         return repository.findById(id);
     }
@@ -33,20 +37,5 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteById(User user) {
         repository.deleteById(user.getId());
-    }
-
-
-    @Override
-    public void changePassword(User user, String newPass) throws InvalidFormatException {
-        if (!logInfoValidator.isValidPassword(newPass))
-            throw new InvalidFormatException("Invalid password format.");
-
-        user.setPassword(newPass);
-        repository.save(user);
-    }
-
-    @Override
-    public boolean isEmailUnique(String email) {
-        return repository.findByEmail(email).isEmpty();
     }
 }
