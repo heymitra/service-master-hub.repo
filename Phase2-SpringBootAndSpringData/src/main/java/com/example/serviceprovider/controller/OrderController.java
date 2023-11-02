@@ -70,7 +70,7 @@ public class OrderController {
     }
 
     @PutMapping("/complete")
-    public void completeOrder(Long orderId) {
+    public void completeOrder(@RequestParam Long orderId) {
         Order order = orderService.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order with " + orderId + " order id not found"));
         if (order.getStatus() != OrderStatusEnum.STARTED) {
@@ -79,7 +79,7 @@ public class OrderController {
 
         order.setStatus(OrderStatusEnum.COMPLETED);
 
-        orderService.update(order);
+        orderService.completeOrder(order);
     }
 
     @PostMapping("/online-payment")
@@ -114,12 +114,11 @@ public class OrderController {
                 .orElseThrow(() -> new ItemNotFoundException("Order with ID " + orderId + " not found"));
 
         OrderStatusEnum orderStatus = order.getStatus();
-        if (orderStatus != OrderStatusEnum.WAITING_FOR_EXPERT_TO_COME) {
+        if (orderStatus != OrderStatusEnum.COMPLETED) {
             throw new InvalidInputException(String.format("Order in %s status does not require payment.", orderStatus));
         } else
             return order;
     }
-
 
     private boolean isValidCardInfo(String cardNumber, String cvv2, String secondPassword) {
         return cardNumber != null && cardNumber.matches("\\d{16}")
