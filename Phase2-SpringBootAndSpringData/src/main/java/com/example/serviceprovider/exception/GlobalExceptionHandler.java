@@ -18,17 +18,43 @@ import java.util.Objects;
 @Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-//    @ExceptionHandler(DuplicateException.class)
-//    public ResponseEntity<String> duplicateExceptionHandler(DuplicateException e) {
-//        log.error(e.getMessage());
-//        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-//    }
+    @ExceptionHandler(InsufficientCreditException.class)
+    public ResponseEntity<String> insufficientCreditExceptionHandler(InsufficientCreditException e) {
+        log.error(e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+    }
 
-//    @ExceptionHandler(NullPointerException.class)
-//    public ResponseEntity<String> nullPointerExceptionHandler(NullPointerException e) {
-//        log.error(e.getMessage());
-//        return ResponseEntity.status(HttpStatus.OK).body(e.getMessage());
-//    }
+    @ExceptionHandler(ItemNotFoundException.class)
+    public ResponseEntity<String> itemNotFoundExceptionHandler(ItemNotFoundException e) {
+        log.error(e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+    }
+
+    @ExceptionHandler(EmptyFileException.class)
+    public ResponseEntity<String> emptyFileExceptionHandler(EmptyFileException e) {
+        log.error(e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+    }
+
+    @ExceptionHandler(DuplicatedInstanceException.class)
+    public ResponseEntity<String> duplicatedInstanceExceptionHandler(DuplicatedInstanceException e) {
+        log.error(e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidInputException.class)
+    public ResponseEntity<String> invalidInputExceptionHandler(InvalidInputException e) {
+        log.error(e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> illegalArgumentExceptionHandler(IllegalArgumentException e) {
+        log.error(e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+    }
+
+
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
