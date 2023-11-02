@@ -1,5 +1,6 @@
 package com.example.serviceprovider.service.impl;
 
+import com.example.serviceprovider.exception.InsufficientCreditException;
 import com.example.serviceprovider.exception.ItemNotFoundException;
 import com.example.serviceprovider.model.*;
 import com.example.serviceprovider.model.enumeration.OrderStatusEnum;
@@ -62,6 +63,27 @@ public class OrderServiceImpl implements OrderService {
                 expertSubServices
         );
     }
+
+    @Override
+    @Transactional
+    public void makePayment(Order order) {
+        Customer customer = order.getCustomer();
+
+        double orderPrice = order.getSelectedOffer().getOfferedPrice();
+        double customerCredit = customer.getCredit();
+
+        if (customerCredit >= orderPrice) {
+            customer.setCredit(customerCredit - orderPrice);
+            customerService.update(customer);
+
+            order.setStatus(OrderStatusEnum.PAID);
+            repository.save(order);
+
+        } else {
+            throw new InsufficientCreditException("Insufficient credit to make the payment");
+        }
+    }
+
 
     @Override
     public Optional<Order> findById(Long id) {

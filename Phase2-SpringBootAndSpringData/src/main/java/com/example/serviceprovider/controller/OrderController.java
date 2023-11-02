@@ -2,6 +2,8 @@ package com.example.serviceprovider.controller;
 
 import com.example.serviceprovider.dto.OrderRequestDto;
 import com.example.serviceprovider.dto.OrderResponseDTO;
+import com.example.serviceprovider.exception.InvalidInputException;
+import com.example.serviceprovider.exception.ItemNotFoundException;
 import com.example.serviceprovider.model.Offer;
 import com.example.serviceprovider.model.Order;
 import com.example.serviceprovider.model.enumeration.OrderStatusEnum;
@@ -80,6 +82,50 @@ public class OrderController {
         orderService.update(order);
     }
 
+    @PostMapping("/online-payment")
+    public ResponseEntity<String> makePayment(
+            @RequestParam String cardNumber,
+            @RequestParam String cvv2,
+            @RequestParam String secondPassword,
+            @RequestParam Long orderId
+    ) {
+        if (!isValidCardInfo(cardNumber, cvv2, secondPassword)) {
+            return new ResponseEntity<>("Invalid card information. Payment failed.", HttpStatus.BAD_REQUEST);
+        }
+
+        Order toBePayedOrder = getToBePayedOrder(orderId);
+
+        orderService.makePayment(toBePayedOrder);
+
+        System.out.println(cardNumber + cvv2 + secondPassword);
+        return ResponseEntity.ok("Payment successful");
+    }
+
+    @GetMapping("/credit-payment")
+    public void payWithCredit(@RequestParam Long orderId) {
+
+        Order toBePayedOrder = getToBePayedOrder(orderId);
+        orderService.makePayment(toBePayedOrder);
+
+    }
+
+    private Order getToBePayedOrder(Long orderId) {
+        Order order = orderService.findById(orderId)
+                .orElseThrow(() -> new ItemNotFoundException("Order with ID " + orderId + " not found"));
+
+        OrderStatusEnum orderStatus = order.getStatus();
+        if (orderStatus != OrderStatusEnum.WAITING_FOR_EXPERT_TO_COME) {
+            throw new InvalidInputException(String.format("Order in %s status does not require payment.", orderStatus));
+        } else
+            return order;
+    }
+
+
+    private boolean isValidCardInfo(String cardNumber, String cvv2, String secondPassword) {
+        return cardNumber != null && cardNumber.matches("\\d{16}")
+                && cvv2 != null && cvv2.matches("\\d{3,4}")
+                && secondPassword != null && secondPassword.matches("\\d{8,12}");
+    }
 }
 
 class OrderMapper {

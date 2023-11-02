@@ -13,4 +13,5 @@ public interface OrderService {
     List<Order> findAll();
     void deleteById(Long orderId);
     List<Order> getOrdersForExpert(Expert expert);
+    void makePayment(Order order);
 }
