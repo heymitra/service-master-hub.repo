@@ -3,14 +3,17 @@ package com.example.serviceprovider.service.impl;
 import com.example.serviceprovider.exception.InsufficientCreditException;
 import com.example.serviceprovider.exception.ItemNotFoundException;
 import com.example.serviceprovider.model.*;
+import com.example.serviceprovider.model.enumeration.ExpertStatusEnum;
 import com.example.serviceprovider.model.enumeration.OrderStatusEnum;
 import com.example.serviceprovider.repository.OrderRepository;
 import com.example.serviceprovider.service.CustomerService;
+import com.example.serviceprovider.service.ExpertService;
 import com.example.serviceprovider.service.OrderService;
 import com.example.serviceprovider.service.SubServiceService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -21,11 +24,16 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository repository;
     private final SubServiceService subServiceService;
     private final CustomerService customerService;
+    private final ExpertService expertService;
 
-    public OrderServiceImpl(OrderRepository repository, SubServiceService subServiceService, CustomerService customerService) {
+    public OrderServiceImpl(OrderRepository repository,
+                            SubServiceService subServiceService,
+                            CustomerService customerService,
+                            ExpertService expertService) {
         this.repository = repository;
         this.subServiceService = subServiceService;
         this.customerService = customerService;
+        this.expertService = expertService;
     }
 
     @Override
@@ -77,11 +85,40 @@ public class OrderServiceImpl implements OrderService {
             customerService.update(customer);
 
             order.setStatus(OrderStatusEnum.PAID);
+            order.getSelectedOffer().getExpert().setCredit(orderPrice * 0.7);
             repository.save(order);
 
         } else {
             throw new InsufficientCreditException("Insufficient credit to make the payment");
         }
+    }
+
+    @Transactional
+    @Override
+    public void completeOrder(Order order) {
+        Offer selectedOffer = order.getSelectedOffer();
+        LocalDateTime offeredStartTime = selectedOffer.getOfferedStartTime();
+        int offeredDurationInHours = selectedOffer.getOfferedDurationInHours();
+
+        Expert expert = selectedOffer.getExpert();
+        int expertScore = expert.getScore();
+
+        LocalDateTime completionTime = LocalDateTime.now();
+
+        if (completionTime.isAfter(offeredStartTime.plusHours(offeredDurationInHours))) {
+            long delayInHours = Duration.between(offeredStartTime.plusHours(offeredDurationInHours), completionTime).toHours();
+
+            expertScore -= Math.toIntExact(delayInHours);
+
+            if (expertScore < 0) {
+                expert.setExpertStatus(ExpertStatusEnum.INACTIVE);
+            }
+        }
+
+        expert.setScore(expertScore);
+
+        update(order);
+        expertService.update(expert);
     }
 
 
