@@ -4,6 +4,8 @@ import com.example.serviceprovider.model.User;
 import com.example.serviceprovider.repository.UserRepository;
 import com.example.serviceprovider.service.UserService;
 import com.example.serviceprovider.validation.LogInfoValidator;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,5 +39,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteById(User user) {
         repository.deleteById(user.getId());
+    }
+
+
+    public Page<User> searchAndFilterUsers(String role,
+                                           String name,
+                                           String surname,
+                                           String email,
+                                           String sortBy,
+                                           Pageable pageable) {
+        return repository.searchAndFilterUsers(role, name, surname, email, sortBy, pageable);
     }
 }
