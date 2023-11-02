@@ -43,6 +43,8 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Completion date and time cannot be in the past.");
         }
 
+        order.setStatus(OrderStatusEnum.WAITING_FOR_OFFERS);
+        order.setSubService(subService);
         order.setCustomer(customer);
         return repository.save(order);
     }
