@@ -51,4 +51,11 @@ public class ExpertController {
         ExpertResponseDto expertResponseDto = modelMapper.map(addedExpert, ExpertResponseDto.class);
         return new ResponseEntity<>(expertResponseDto, HttpStatus.CREATED);
     }
+
+    @PutMapping("/approve")
+    public ResponseEntity<ExpertResponseDto> approve(@RequestParam Long expertId) {
+        Expert expert = expertService.approveExpert(expertId);
+        ExpertResponseDto expertResponseDto = modelMapper.map(expert, ExpertResponseDto.class);
+        return new ResponseEntity<>(expertResponseDto, HttpStatus.OK);
+    }
 }
