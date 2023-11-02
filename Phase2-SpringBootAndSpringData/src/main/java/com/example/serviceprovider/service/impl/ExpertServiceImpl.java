@@ -45,7 +45,7 @@ public class ExpertServiceImpl implements ExpertService {
         expert.setRegistrationDateTime(LocalDateTime.now());
         expert.setScore(0);
         expert.setExpertStatus(ExpertStatusEnum.NEW);
-
+        expert.setCredit(0);
         return repository.save(expert);
     }
 
