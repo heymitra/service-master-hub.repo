@@ -16,17 +16,18 @@ public class ExpertResponseDto extends UserResponseDto {
                              String name,
                              String surname,
                              String email,
-                             byte[] personalPhoto,
-                             int score,
+//                             byte[] personalPhoto,
+                             double credit,
+                             int rate,
                              ExpertStatusEnum expertStatus,
                              LocalDateTime registrationDateTime) {
-        super(id, name, surname, email, registrationDateTime);
-        this.personalPhoto = personalPhoto;
-        this.score = score;
+        super(id, name, surname, email, credit, registrationDateTime);
+//        this.personalPhoto = personalPhoto;
+        this.rate = rate;
         this.expertStatus = expertStatus;
     }
 
-    private byte[] personalPhoto;
-    private int score;
+//    private byte[] personalPhoto;
+    private int rate;
     private ExpertStatusEnum expertStatus;
 }
