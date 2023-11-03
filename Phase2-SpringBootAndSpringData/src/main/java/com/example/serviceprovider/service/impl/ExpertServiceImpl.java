@@ -6,6 +6,7 @@ import com.example.serviceprovider.service.dto.ExpertDTO;
 import com.example.serviceprovider.model.enumeration.ExpertStatusEnum;
 import com.example.serviceprovider.repository.ExpertRepository;
 import com.example.serviceprovider.service.ExpertService;
+import com.example.serviceprovider.utility.ImageUtility;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -16,9 +17,11 @@ import java.util.stream.Collectors;
 @Service
 public class ExpertServiceImpl implements ExpertService {
     private final ExpertRepository repository;
+    private final ImageUtility imageUtility;
 
-    public ExpertServiceImpl(ExpertRepository repository) {
+    public ExpertServiceImpl(ExpertRepository repository, ImageUtility imageUtility) {
         this.repository = repository;
+        this.imageUtility = imageUtility;
     }
 
     @Override
@@ -47,7 +50,12 @@ public class ExpertServiceImpl implements ExpertService {
         expert.setRate(0);
         expert.setExpertStatus(ExpertStatusEnum.NEW);
         expert.setCredit(0);
-        return repository.save(expert);
+
+        Expert savedExpert = repository.save(expert);
+        imageUtility.storeExpertPersonalPhoto(expert.getPersonalPhoto(),
+                savedExpert.getId() + ".jpg");
+
+        return  savedExpert;
     }
 
     @Override
