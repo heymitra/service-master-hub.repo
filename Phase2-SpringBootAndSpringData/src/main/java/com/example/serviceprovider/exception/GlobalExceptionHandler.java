@@ -1,5 +1,6 @@
 package com.example.serviceprovider.exception;
 
+import com.example.serviceprovider.utility.ErrorDetails;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
