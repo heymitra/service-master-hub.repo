@@ -11,16 +11,16 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/expert-subservice")
 public class ExpertSubServiceController {
-    private final ExpertSubServiceService expertSubServiceService;
+    private final ExpertSubServiceService service;
 
-    public ExpertSubServiceController(ExpertSubServiceService expertSubServiceService) {
-        this.expertSubServiceService = expertSubServiceService;
+    public ExpertSubServiceController(ExpertSubServiceService service) {
+        this.service = service;
     }
 
     @PostMapping("/assign")
     public ResponseEntity<ExpertSubServiceResponseDTO> assign(@RequestParam Long expertId,
                                                 @RequestParam Long subServiceId) {
-        ExpertSubService savedRecord = expertSubServiceService.save(expertId, subServiceId);
+        ExpertSubService savedRecord = service.save(expertId, subServiceId);
         if (savedRecord == null) {
             throw new ItemNotFoundException(String.format("Expert-ID = %s / Sub-Service_ID = %s not found", expertId, subServiceId));
         }
@@ -28,6 +28,11 @@ public class ExpertSubServiceController {
         ExpertSubServiceResponseDTO savedRecordDTO = mapper.modelToDto(savedRecord);
         return new ResponseEntity<>(savedRecordDTO, HttpStatus.CREATED);
 
+    }
+
+    @DeleteMapping("remove")
+    public void delete (@RequestParam Long expertId, @RequestParam Long subServiceId) {
+        service.remove(expertId, subServiceId);
     }
 }
 

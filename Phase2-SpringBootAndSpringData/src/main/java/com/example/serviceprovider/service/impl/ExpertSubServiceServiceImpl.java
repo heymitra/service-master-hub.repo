@@ -8,8 +8,10 @@ import com.example.serviceprovider.service.ExpertService;
 import com.example.serviceprovider.service.ExpertSubServiceService;
 import com.example.serviceprovider.service.SubServiceService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class ExpertSubServiceServiceImpl implements ExpertSubServiceService {
     private final ExpertSubServiceRepository repository;
     private final ExpertService expertService;
@@ -36,5 +38,10 @@ public class ExpertSubServiceServiceImpl implements ExpertSubServiceService {
             return null;
         }
 
+    }
+
+    @Override
+    public void remove(Long expertId, Long subServiceId) {
+        repository.deleteByExpertIdAndSubServiceId(expertId, subServiceId);
     }
 }
