@@ -16,5 +16,6 @@ public class UserResponseDto {
     private String name;
     private String surname;
     private String email;
+    private double credit;
     private LocalDateTime registrationDateTime;
 }
