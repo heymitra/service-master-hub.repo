@@ -1,37 +1,37 @@
 package com.example.serviceprovider.service.impl;
 
-import com.example.serviceprovider.exception.SubServiceAlreadyExistsException;
-import com.example.serviceprovider.exception.SubServiceNotFoundException;
-import com.example.serviceprovider.model.Expert;
+import com.example.serviceprovider.exception.InvalidInputException;
+import com.example.serviceprovider.model.Service;
 import com.example.serviceprovider.model.SubService;
 import com.example.serviceprovider.repository.SubServiceRepository;
-import com.example.serviceprovider.service.ExpertService;
+import com.example.serviceprovider.service.ServiceService;
 import com.example.serviceprovider.service.SubServiceService;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
-@Service
+@org.springframework.stereotype.Service
 public class SubServiceServiceImpl implements SubServiceService {
     private final SubServiceRepository repository;
-    public SubServiceServiceImpl(SubServiceRepository repository) {
-        this.repository = repository;
-    }
+    private final ServiceService serviceService;
 
-    private ExpertService expertService;
-    public void setExpertService(ExpertService expertService) {
-        this.expertService = expertService;
+    public SubServiceServiceImpl(SubServiceRepository repository, ServiceService serviceService) {
+        this.repository = repository;
+        this.serviceService = serviceService;
     }
 
     @Override
-    public SubService saveOrUpdate(SubService subService) {
-        Optional<SubService> existingSubService = findBySubServiceName(subService.getSubServiceName());
-        if (existingSubService.isPresent()) {
-            throw new SubServiceAlreadyExistsException(subService.getSubServiceName());
-        } else {
-            return repository.save(subService);
-        }
+    public SubService save(SubService subService, Long serviceId) {
+        Service service = serviceService.findById(serviceId)
+                .orElseThrow(() -> new InvalidInputException("Service with ID " + serviceId + " not found."));
+
+        subService.setService(service);
+        return repository.save(subService);
+    }
+
+    @Override
+    public SubService update(SubService subService) {
+        return repository.save(subService);
     }
 
     @Override
@@ -57,24 +57,5 @@ public class SubServiceServiceImpl implements SubServiceService {
     @Override
     public List<SubService> findSubServicesByServiceId(Long serviceId) {
         return repository.findSubServicesByServiceId(serviceId);
-    }
-
-    @Override
-    public void addExpertToSubService(Long expertId, Long subServiceId) {
-        Optional<SubService> subServiceOptional = repository.findById(subServiceId);
-        Optional<Expert> expertOptional = expertService.findById(expertId);
-
-        if (subServiceOptional.isPresent() && expertOptional.isPresent()) {
-            SubService subService = subServiceOptional.get();
-            Expert expert = expertOptional.get();
-
-            subService.getExperts().add(expert);
-            expert.getSubServices().add(subService);
-
-            repository.save(subService);
-            expertService.saveOrUpdate(expert);
-        } else {
-            throw new SubServiceNotFoundException(subServiceId);
-        }
     }
 }
