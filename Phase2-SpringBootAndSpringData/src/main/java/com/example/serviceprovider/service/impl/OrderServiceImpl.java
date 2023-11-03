@@ -39,10 +39,10 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order save(Order order, Long subServiceId, Long customerId) {
         Customer customer = customerService.findById(customerId)
-                .orElseThrow(() -> new ItemNotFoundException("Customer with ID " + customerId + " not found"));
+                .orElseThrow(() -> new ItemNotFoundException("Customer with ID " + customerId + " not found."));
 
         SubService subService = subServiceService.findById(subServiceId)
-                .orElseThrow(() -> new ItemNotFoundException("Sub-service with ID " + subServiceId + " not found"));
+                .orElseThrow(() -> new ItemNotFoundException("Sub-service with ID " + subServiceId + " not found."));
 
         if (order.getProposedPrice() < subService.getBasePrice()) {
             throw new IllegalArgumentException("Proposed price cannot be less than the base price of the sub-service.");
@@ -64,7 +64,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> getOrdersForExpert(Expert expert) {
+    public List<Order> getAvailableOrdersByExpert(Long expertId) {
+        Expert expert = expertService.findById(expertId)
+                .orElseThrow(() -> new ItemNotFoundException("Expert with ID " + expertId + " not found."));
         List<SubService> expertSubServices = expert.getSubServices();
         return repository.findOrdersByStatusAndSubServiceIn(
                 Arrays.asList(OrderStatusEnum.WAITING_FOR_OFFERS, OrderStatusEnum.WAITING_FOR_EXPERT_SELECTION),
@@ -74,7 +76,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void makePayment(Order order) {
+    public Order makePayment(Order order) {
         Customer customer = order.getCustomer();
 
         double orderPrice = order.getSelectedOffer().getOfferedPrice();
@@ -86,7 +88,7 @@ public class OrderServiceImpl implements OrderService {
 
             order.setStatus(OrderStatusEnum.PAID);
             order.getSelectedOffer().getExpert().setCredit(orderPrice * 0.7);
-            repository.save(order);
+            return repository.save(order);
 
         } else {
             throw new InsufficientCreditException("Insufficient credit to make the payment");
@@ -95,13 +97,13 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public void completeOrder(Order order) {
+    public Order completeOrder(Order order) {
         Offer selectedOffer = order.getSelectedOffer();
         LocalDateTime offeredStartTime = selectedOffer.getOfferedStartTime();
         int offeredDurationInHours = selectedOffer.getOfferedDurationInHours();
 
         Expert expert = selectedOffer.getExpert();
-        int expertScore = expert.getScore();
+        int expertScore = expert.getRate();
 
         LocalDateTime completionTime = LocalDateTime.now();
 
@@ -115,10 +117,10 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
-        expert.setScore(expertScore);
+        expert.setRate(expertScore);
 
-        update(order);
         expertService.update(expert);
+        return update(order);
     }
 
 
