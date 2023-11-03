@@ -6,7 +6,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ServiceService {
-    Service saveOrUpdate(Service service);
+    Service save(Service service);
+    Service update(Service service);
     Optional<Service> findById(Long id);
     List<Service> findAll();
     void deleteById(Service service);

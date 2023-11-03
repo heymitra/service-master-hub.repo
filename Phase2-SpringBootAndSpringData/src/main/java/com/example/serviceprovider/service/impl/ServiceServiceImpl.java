@@ -16,16 +16,14 @@ public class ServiceServiceImpl implements ServiceService {
     }
 
     @Override
-    public Service saveOrUpdate(Service service) {
-        Optional<Service> existingService = findByServiceName(service.getServiceName());
-        if (existingService.isPresent()) {
-            Service updatedService = existingService.get();
-            return repository.save(updatedService);
-        } else {
-            return repository.save(service);
-        }
+    public Service save(Service service) {
+        return repository.save(service);
     }
 
+    @Override
+    public Service update(Service service) {
+        return repository.save(service);
+    }
 
     @Override
     public Optional<Service> findById(Long id) {
