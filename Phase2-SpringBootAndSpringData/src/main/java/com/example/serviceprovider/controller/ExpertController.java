@@ -58,4 +58,10 @@ public class ExpertController {
         ExpertResponseDto expertResponseDto = modelMapper.map(expert, ExpertResponseDto.class);
         return new ResponseEntity<>(expertResponseDto, HttpStatus.OK);
     }
+
+    @GetMapping("/rate")
+    public ResponseEntity<Integer> viewRate(@RequestParam Long expertId) {
+        int rate = expertService.viewRate(expertId);
+        return new ResponseEntity<>(rate, HttpStatus.OK);
+    }
 }

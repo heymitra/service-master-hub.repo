@@ -1,5 +1,6 @@
 package com.example.serviceprovider.service.impl;
 
+import com.example.serviceprovider.exception.ItemNotFoundException;
 import com.example.serviceprovider.model.Expert;
 import com.example.serviceprovider.service.dto.ExpertDTO;
 import com.example.serviceprovider.model.enumeration.ExpertStatusEnum;
@@ -28,7 +29,7 @@ public class ExpertServiceImpl implements ExpertService {
                     expertDTO.setName(expert.getName());
                     expertDTO.setSurname(expert.getSurname());
                     expertDTO.setEmail(expert.getEmail());
-                    expertDTO.setScore(expert.getScore());
+                    expertDTO.setScore(expert.getRate());
                     expertDTO.setExpertStatus(expert.getExpertStatus());
                     return expertDTO;
                 })
@@ -43,7 +44,7 @@ public class ExpertServiceImpl implements ExpertService {
     @Override
     public Expert save(Expert expert) {
         expert.setRegistrationDateTime(LocalDateTime.now());
-        expert.setScore(0);
+        expert.setRate(0);
         expert.setExpertStatus(ExpertStatusEnum.NEW);
         expert.setCredit(0);
         return repository.save(expert);
@@ -56,11 +57,18 @@ public class ExpertServiceImpl implements ExpertService {
 
     @Override
     public Expert approveExpert(Long expertId) {
-        Optional<Expert> expertOptional = findById(expertId);
-        expertOptional.ifPresent(expert -> {
-            expert.setExpertStatus(ExpertStatusEnum.APPROVED);
-            update(expert);
-        });
-        return expertOptional.orElse(null);
+        Expert expert = findById(expertId)
+                .orElseThrow(() -> new ItemNotFoundException("Expert with ID " + expertId + " not found."));
+        expert.setExpertStatus(ExpertStatusEnum.APPROVED);
+        update(expert);
+        return expert;
+    }
+
+    @Override
+    public int viewRate(Long expertId) {
+        Expert expert = repository.findById(expertId)
+                .orElseThrow(() -> new ItemNotFoundException("Expert not found with ID: " + expertId));
+
+        return expert.getRate();
     }
 }
