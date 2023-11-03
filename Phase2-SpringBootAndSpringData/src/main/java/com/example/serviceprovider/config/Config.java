@@ -15,11 +15,11 @@ public class Config {
         ModelMapper modelMapper = new ModelMapper();
 
         modelMapper.createTypeMap(Order.class, OrderResponseDto.class)
-                .addMapping(src -> src.getProposedPrice(), OrderResponseDto::setProposedPrice)
-                .addMapping(src -> src.getWorkDescription(), OrderResponseDto::setWorkDescription)
-                .addMapping(src -> src.getCompletionDateTime(), OrderResponseDto::setCompletionDateTime)
-                .addMapping(src -> src.getAddress(), OrderResponseDto::setAddress)
-                .addMapping(src -> src.getStatus(), OrderResponseDto::setStatus);
+                .addMapping(Order::getProposedPrice, OrderResponseDto::setProposedPrice)
+                .addMapping(Order::getWorkDescription, OrderResponseDto::setWorkDescription)
+                .addMapping(Order::getCompletionDateTime, OrderResponseDto::setCompletionDateTime)
+                .addMapping(Order::getAddress, OrderResponseDto::setAddress)
+                .addMapping(Order::getStatus, OrderResponseDto::setStatus);
 
         return modelMapper;
     }
