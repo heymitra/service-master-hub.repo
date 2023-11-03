@@ -1,7 +1,8 @@
 package com.example.serviceprovider.controller;
 
 import com.example.serviceprovider.dto.OrderRequestDto;
-import com.example.serviceprovider.dto.OrderResponseDTO;
+import com.example.serviceprovider.dto.OrderByIdsDto;
+import com.example.serviceprovider.dto.OrderResponseDto;
 import com.example.serviceprovider.exception.InvalidInputException;
 import com.example.serviceprovider.exception.ItemNotFoundException;
 import com.example.serviceprovider.model.Offer;
@@ -15,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @CrossOrigin("*")
 @RestController
@@ -34,24 +37,24 @@ public class OrderController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<OrderResponseDTO> add(@RequestBody @Valid OrderRequestDto orderRequestDto,
-                                                @RequestParam Long subServiceId,
-                                                @RequestParam Long customerId) {
+    public ResponseEntity<OrderByIdsDto> add(@RequestBody @Valid OrderRequestDto orderRequestDto,
+                                             @RequestParam Long subServiceId,
+                                             @RequestParam Long customerId) {
         Order order = modelMapper.map(orderRequestDto, Order.class);
         Order savedOrder = orderService.save(order, subServiceId, customerId);
         OrderMapper orderMapper = new OrderMapper();
-        OrderResponseDTO orderResponseDTO = orderMapper.modelToDto(savedOrder);
+        OrderByIdsDto orderByIdsDto = orderMapper.modelToDto(savedOrder);
 
-        return new ResponseEntity<>(orderResponseDTO, HttpStatus.CREATED);
+        return new ResponseEntity<>(orderByIdsDto, HttpStatus.CREATED);
     }
 
     @PutMapping("/start")
-    public void startOrder(@RequestParam Long orderId) {
+    public ResponseEntity<OrderResponseDto> startOrder(@RequestParam Long orderId) {
         Order order = orderService.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order with " + orderId + " order id not found"));
 
         if (order.getStatus() != OrderStatusEnum.WAITING_FOR_EXPERT_TO_COME) {
-            throw new IllegalArgumentException("The order with this status cannot start.");
+            throw new IllegalArgumentException("The order with this status cannot be started.");
         }
 
         Offer selectedOffer = order.getSelectedOffer();
@@ -66,20 +69,28 @@ public class OrderController {
         }
 
         order.setStatus(OrderStatusEnum.STARTED);
-        orderService.update(order);
+        Order updatedOrder = orderService.update(order);
+        OrderResponseDto orderResponseDto = modelMapper.map(updatedOrder, OrderResponseDto.class);
+        return new ResponseEntity<>(orderResponseDto, HttpStatus.OK);
     }
 
     @PutMapping("/complete")
-    public void completeOrder(@RequestParam Long orderId) {
+    public ResponseEntity<OrderResponseDto> completeOrder(@RequestParam Long orderId) {
         Order order = orderService.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Order with " + orderId + " order id not found"));
-        if (order.getStatus() != OrderStatusEnum.STARTED) {
-            throw new IllegalArgumentException("The order is not in the 'Started' status.");
+                .orElseThrow(() -> new IllegalArgumentException("Order with " + orderId + " order id not found."));
+
+        OrderStatusEnum status = order.getStatus();
+        if (status == OrderStatusEnum.COMPLETED || status == OrderStatusEnum.PAID) {
+            throw new IllegalArgumentException("The order has been completed before.");
+        } else if (status != OrderStatusEnum.STARTED) {
+            throw new IllegalArgumentException("The order has not been started yet.");
         }
 
         order.setStatus(OrderStatusEnum.COMPLETED);
 
-        orderService.completeOrder(order);
+        Order completedOrder = orderService.completeOrder(order);
+        OrderResponseDto orderResponseDto = modelMapper.map(orderService, OrderResponseDto.class);
+        return new ResponseEntity<>(orderResponseDto, HttpStatus.OK);
     }
 
     @PostMapping("/online-payment")
@@ -102,11 +113,21 @@ public class OrderController {
     }
 
     @GetMapping("/credit-payment")
-    public void payWithCredit(@RequestParam Long orderId) {
-
+    public ResponseEntity<OrderResponseDto> payWithCredit(@RequestParam Long orderId) {
         Order toBePayedOrder = getToBePayedOrder(orderId);
-        orderService.makePayment(toBePayedOrder);
+        Order order = orderService.makePayment(toBePayedOrder);
+        OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
+        return new ResponseEntity<>(orderResponseDto, HttpStatus.OK);
+    }
 
+    @GetMapping("/get-orders")
+    public ResponseEntity<List<OrderResponseDto>> getAvailableOrdersByExpert(@RequestParam Long expertId) {
+        List<Order> orders = orderService.getAvailableOrdersByExpert(expertId);
+        List<OrderResponseDto> responseDtos = new ArrayList<>();
+        for (Order order : orders) {
+            responseDtos.add(modelMapper.map(order, OrderResponseDto.class));
+        }
+        return new ResponseEntity<>(responseDtos, HttpStatus.OK);
     }
 
     private Order getToBePayedOrder(Long orderId) {
@@ -128,8 +149,8 @@ public class OrderController {
 }
 
 class OrderMapper {
-    public OrderResponseDTO modelToDto(Order order) {
-        return new OrderResponseDTO(order.getId(),
+    public OrderByIdsDto modelToDto(Order order) {
+        return new OrderByIdsDto(order.getId(),
                 order.getSubService().getId(),
                 order.getCustomer().getId());
     }
