@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Payment with Credit Card</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+
+        .custom-form {
+            background-color: #f7f7f7;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .custom-button {
+            background-color: #006AFF;
+            color: #fff;
+        }
+
+        .custom-button:hover {
+            background-color: #006AFF;
+        }
+
+
+        .form-group label {
+            color: #007BFF;
+        }
+
+        .form-control {
+            border: 1px solid #006AFF;
+            border-radius: 5px;
+        }
+
+        .centered-form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #countdown {
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container centered-form">
+    <div class="custom-form">
+        <h1 class="display-4 mb-4">Online Payment</h1>
+
+        <div id="countdown"></div>
+
+        <form id="paymentForm" method="POST" action="http://localhost:8080/order/online-payment">
+            <div class="form-group">
+                <label for="cardNumber">Card Number (16 digits):</label>
+                <input type="text" class="form-control" id="cardNumber" name="cardNumber"
+                       pattern="[0-9]{16}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="cvv2">CVV2 (4 digits):</label>
+                <input type="text" class="form-control" id="cvv2" name="cvv2" pattern="[0-9]{4}" required>
+            </div>
+
+
+            <div class="form-group">
+                <label for="password">Second Password:</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+
+            <div class="form-group">
+                <label for="orderId">Order ID:</label>
+                <input type="text" class="form-control" id="orderId" name="orderId" required>
+            </div>
+
+            <div class="form-group">
+                <label for="captcha">Captcha:</label>
+                <img src="http://localhost:8080/order/captcha-image" alt="CAPTCHA Image" id="captcha-image">
+                <input type="text" class="form-control" id="captcha" name="captcha" required>
+            </div>
+
+            <button type="submit" class="btn custom-button btn-block">Submit</button>
+        </form>
+    </div>
+</div>
+<script>
+    var countdownElement = document.getElementById("countdown");
+
+    function updateCountdown(seconds) {
+        var minutes = Math.floor(seconds / 60);
+        var remainingSeconds = seconds % 60;
+        countdownElement.innerText = "Auto-closing in " + minutes + " minutes and " + remainingSeconds + " seconds";
+    }
+
+    var countdown = 600;
+    updateCountdown(countdown);
+
+    var countdownInterval = setInterval(function () {
+        countdown -= 1;
+        updateCountdown(countdown);
+
+        if (countdown === 0) {
+            clearInterval(countdownInterval);
+            window.close();
+        }
+    }, 1000);
+</script>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>

@@ -1,4 +1,4 @@
-package com.example.serviceprovider.exception;
+package com.example.serviceprovider.utility;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
