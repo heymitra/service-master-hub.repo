@@ -1,6 +1,5 @@
 package com.example.serviceprovider.service;
 
-import com.example.serviceprovider.model.Expert;
 import com.example.serviceprovider.model.Order;
 
 import java.util.List;
@@ -12,7 +11,7 @@ public interface OrderService {
     Optional<Order> findById(Long id);
     List<Order> findAll();
     void deleteById(Long orderId);
-    List<Order> getOrdersForExpert(Expert expert);
-    void makePayment(Order order);
-    void completeOrder (Order order);
+    List<Order> getAvailableOrdersByExpert(Long expertId);
+    Order makePayment(Order order);
+    Order completeOrder (Order order);
 }
