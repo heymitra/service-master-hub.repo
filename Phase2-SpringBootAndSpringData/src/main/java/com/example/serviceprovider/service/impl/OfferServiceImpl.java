@@ -77,7 +77,7 @@ public class OfferServiceImpl implements OfferService {
         if ("price".equalsIgnoreCase(sortBy)) {
             orderOffers.sort(Comparator.comparing(Offer::getOfferedPrice));
         } else if ("score".equalsIgnoreCase(sortBy)) {
-            orderOffers.sort(Comparator.comparing(offer -> offer.getExpert().getScore(), Comparator.reverseOrder()));
+            orderOffers.sort(Comparator.comparing(offer -> offer.getExpert().getRate(), Comparator.reverseOrder()));
         } else {
             throw new IllegalArgumentException("Invalid sorting criteria. Please use 'price' or 'score'.");
         }
