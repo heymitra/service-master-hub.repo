@@ -22,7 +22,6 @@ public class Offer extends BaseEntity<Long> {
 
     private double offeredPrice;
 
-    @FutureOrPresent(message = "Start time of work cannot be in the past")
     private LocalDateTime offeredStartTime;
 
     private int offeredDurationInHours;

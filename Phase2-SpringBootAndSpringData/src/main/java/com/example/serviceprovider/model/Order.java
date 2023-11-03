@@ -21,14 +21,11 @@ public class Order extends BaseEntity<Long> {
     @JoinColumn(name = "subservice_id")
     private SubService subService;
 
-    @Min(value = 0, message = "Proposed price cannot be negative")
     private double proposedPrice;
 
-    @Lob
     @Basic(fetch = FetchType.LAZY)
     private String workDescription;
 
-    @FutureOrPresent(message = "Completion date and time cannot be in the past")
     private LocalDateTime completionDateTime;
 
     private String address;

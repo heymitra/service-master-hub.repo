@@ -15,11 +15,11 @@ import java.util.List;
 @DiscriminatorValue("Expert")
 public class Expert extends User {
 
-    @Lob
+//    @Lob
     @Basic(fetch = FetchType.LAZY)
     private byte[] personalPhoto;
 
-    private int score;
+    private int rate;
 
     @Enumerated(EnumType.STRING)
     private ExpertStatusEnum expertStatus;
