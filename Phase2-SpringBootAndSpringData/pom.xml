@@ -9,10 +9,10 @@
         <relativePath/>
     </parent>
     <groupId>com.example</groupId>
-    <artifactId>Phase2-SpringBootAndSpringData</artifactId>
+    <artifactId>service-master-hub</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Phase2-SpringBootAndSpringData</name>
-    <description>Phase2-SpringBootAndSpringData</description>
+    <name>service-master-hub</name>
+    <description>service-master-hub</description>
     <properties>
         <java.version>17</java.version>
     </properties>
@@ -31,6 +31,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
         <dependency>
