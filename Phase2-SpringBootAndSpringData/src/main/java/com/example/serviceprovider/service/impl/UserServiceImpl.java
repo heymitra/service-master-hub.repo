@@ -3,9 +3,9 @@ package com.example.serviceprovider.service.impl;
 import com.example.serviceprovider.model.User;
 import com.example.serviceprovider.repository.UserRepository;
 import com.example.serviceprovider.service.UserService;
-import com.example.serviceprovider.validation.LogInfoValidator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,15 +14,16 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository repository;
-    LogInfoValidator logInfoValidator;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository repository) {
+    public UserServiceImpl(UserRepository repository, BCryptPasswordEncoder passwordEncoder) {
         this.repository = repository;
-        logInfoValidator = new LogInfoValidator();
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public User update(User user){
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return repository.save(user);
     }
 
