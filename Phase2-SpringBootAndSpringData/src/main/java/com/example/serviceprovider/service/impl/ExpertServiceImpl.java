@@ -2,11 +2,13 @@ package com.example.serviceprovider.service.impl;
 
 import com.example.serviceprovider.exception.ItemNotFoundException;
 import com.example.serviceprovider.model.Expert;
+import com.example.serviceprovider.model.enumeration.Role;
 import com.example.serviceprovider.service.dto.ExpertDTO;
 import com.example.serviceprovider.model.enumeration.ExpertStatusEnum;
 import com.example.serviceprovider.repository.ExpertRepository;
 import com.example.serviceprovider.service.ExpertService;
 import com.example.serviceprovider.utility.ImageUtility;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,10 +20,14 @@ import java.util.stream.Collectors;
 public class ExpertServiceImpl implements ExpertService {
     private final ExpertRepository repository;
     private final ImageUtility imageUtility;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    public ExpertServiceImpl(ExpertRepository repository, ImageUtility imageUtility) {
+    public ExpertServiceImpl(ExpertRepository repository,
+                             ImageUtility imageUtility,
+                             BCryptPasswordEncoder passwordEncoder) {
         this.repository = repository;
         this.imageUtility = imageUtility;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -50,6 +56,7 @@ public class ExpertServiceImpl implements ExpertService {
         expert.setRate(0);
         expert.setExpertStatus(ExpertStatusEnum.NEW);
         expert.setCredit(0);
+        expert.setPassword(passwordEncoder.encode(expert.getPassword()));
 
         Expert savedExpert = repository.save(expert);
         imageUtility.storeExpertPersonalPhoto(expert.getPersonalPhoto(),
