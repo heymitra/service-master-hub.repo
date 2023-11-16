@@ -1,6 +1,7 @@
 package com.example.serviceprovider.service.impl;
 
 import com.example.serviceprovider.exception.ItemNotFoundException;
+import com.example.serviceprovider.model.UserToken;
 import com.example.serviceprovider.model.Expert;
 import com.example.serviceprovider.model.enumeration.Role;
 import com.example.serviceprovider.service.dto.ExpertDTO;
@@ -8,6 +9,7 @@ import com.example.serviceprovider.model.enumeration.ExpertStatusEnum;
 import com.example.serviceprovider.repository.ExpertRepository;
 import com.example.serviceprovider.service.ExpertService;
 import com.example.serviceprovider.utility.ImageUtility;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,19 +18,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @Service
 public class ExpertServiceImpl implements ExpertService {
     private final ExpertRepository repository;
     private final ImageUtility imageUtility;
     private final BCryptPasswordEncoder passwordEncoder;
-
-    public ExpertServiceImpl(ExpertRepository repository,
-                             ImageUtility imageUtility,
-                             BCryptPasswordEncoder passwordEncoder) {
-        this.repository = repository;
-        this.imageUtility = imageUtility;
-        this.passwordEncoder = passwordEncoder;
-    }
+    private final MailSender mailSender;
 
     @Override
     public List<ExpertDTO> findAllExperts() {
@@ -57,8 +53,16 @@ public class ExpertServiceImpl implements ExpertService {
         expert.setExpertStatus(ExpertStatusEnum.NEW);
         expert.setCredit(0);
         expert.setPassword(passwordEncoder.encode(expert.getPassword()));
+        expert.setRole(Role.ROLE_EXPERT);
+        expert.setActivated(false);
 
         Expert savedExpert = repository.save(expert);
+
+        UserToken userToken = new UserToken();
+        userToken.setUser(savedExpert);
+
+        mailSender.sendActivationEmail(savedExpert);
+
         imageUtility.storeExpertPersonalPhoto(expert.getPersonalPhoto(),
                 savedExpert.getId() + ".jpg");
 
@@ -86,4 +90,17 @@ public class ExpertServiceImpl implements ExpertService {
 
         return expert.getRate();
     }
+
+    @Override
+    public Optional<Expert> findByEmail(String email) {
+        return repository.findByEmail(email);
+    }
+
+    @Override
+    public void activate(Expert expert) {
+        expert.setActivated(true);
+        expert.setExpertStatus(ExpertStatusEnum.AWAITING_APPROVAL);
+        update(expert);
+    }
+
 }
