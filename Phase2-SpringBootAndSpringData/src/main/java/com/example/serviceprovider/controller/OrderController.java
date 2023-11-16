@@ -19,6 +19,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.awt.image.BufferedImage;
@@ -45,18 +46,20 @@ public class OrderController {
         return "payment";
     }
 
+    @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/add")
     public ResponseEntity<OrderByIdsDto> add(@RequestBody @Valid OrderRequestDto orderRequestDto,
                                              @RequestParam Long subServiceId,
                                              @RequestParam Long customerId) {
         Order order = modelMapper.map(orderRequestDto, Order.class);
         Order savedOrder = orderService.save(order, subServiceId, customerId);
-        OrderMapper orderMapper = new OrderMapper();
+        OrderByIdsDto orderMapper = new OrderByIdsDto();
         OrderByIdsDto orderByIdsDto = orderMapper.modelToDto(savedOrder);
 
         return new ResponseEntity<>(orderByIdsDto, HttpStatus.CREATED);
     }
 
+    @PreAuthorize("hasRole('CUSTOMER')")
     @PutMapping("/start")
     public ResponseEntity<OrderResponseDto> startOrder(@RequestParam Long orderId) {
         Order order = orderService.findById(orderId)
@@ -83,6 +86,7 @@ public class OrderController {
         return new ResponseEntity<>(orderResponseDto, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('CUSTOMER')")
     @PutMapping("/complete")
     public ResponseEntity<OrderResponseDto> completeOrder(@RequestParam Long orderId) {
         Order order = orderService.findById(orderId)
@@ -102,25 +106,7 @@ public class OrderController {
         return new ResponseEntity<>(orderResponseDto, HttpStatus.OK);
     }
 
-//    @PostMapping("/online-payment")
-//    public ResponseEntity<String> makePayment(
-//            @RequestParam String cardNumber,
-//            @RequestParam String cvv2,
-//            @RequestParam String secondPassword,
-//            @RequestParam Long orderId
-//    ) {
-//        if (!isValidCardInfo(cardNumber, cvv2, secondPassword)) {
-//            return new ResponseEntity<>("Invalid card information. Payment failed.", HttpStatus.BAD_REQUEST);
-//        }
-//
-//        Order toBePayedOrder = getToBePayedOrder(orderId);
-//
-//        orderService.makePayment(toBePayedOrder);
-//
-//        System.out.println(cardNumber + cvv2 + secondPassword);
-//        return ResponseEntity.ok("Payment successful");
-//    }
-
+    @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/credit-payment")
     public ResponseEntity<OrderResponseDto> payWithCredit(@RequestParam Long orderId) {
         Order toBePayedOrder = getToBePayedOrder(orderId);
@@ -129,9 +115,10 @@ public class OrderController {
         return new ResponseEntity<>(orderResponseDto, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('EXPERT')")
     @GetMapping("/get-orders")
-    public ResponseEntity<List<OrderResponseDto>> getAvailableOrdersByExpert(@RequestParam Long expertId) {
-        List<Order> orders = orderService.getAvailableOrdersByExpert(expertId);
+    public ResponseEntity<List<OrderResponseDto>> getAvailableOrdersByExpert() {
+        List<Order> orders = orderService.getAvailableOrdersByExpert();
         List<OrderResponseDto> responseDtos = new ArrayList<>();
         for (Order order : orders) {
             responseDtos.add(modelMapper.map(order, OrderResponseDto.class));
@@ -156,6 +143,7 @@ public class OrderController {
                 && secondPassword != null && secondPassword.matches("\\d{8,12}");
     }
 
+    @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/online-payment")
     public ResponseEntity<String> makePayment(
             @RequestParam String cardNumber,
@@ -165,7 +153,6 @@ public class OrderController {
             @RequestParam String captcha,
             HttpSession session
     ) {
-        System.out.println("Hi");
         String storedCaptcha = (String) session.getAttribute("captcha");
 
         if (!captcha.equals(storedCaptcha)) {
@@ -204,13 +191,5 @@ public class OrderController {
         byte[] imageBytes = imageUtility.convertImageToByteArray(image);
 
         return new ResponseEntity<>(imageBytes, headers, 200);
-    }
-}
-
-class OrderMapper {
-    public OrderByIdsDto modelToDto(Order order) {
-        return new OrderByIdsDto(order.getId(),
-                order.getSubService().getId(),
-                order.getCustomer().getId());
     }
 }
