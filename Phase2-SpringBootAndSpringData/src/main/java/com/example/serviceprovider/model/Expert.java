@@ -30,4 +30,9 @@ public class Expert extends User {
             joinColumns = @JoinColumn(name = "expert_id"),
             inverseJoinColumns = @JoinColumn(name = "subservice_id"))
     private List<SubService> subServices = new ArrayList<>();
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return (getExpertStatus() != ExpertStatusEnum.INACTIVE);
+    }
 }
