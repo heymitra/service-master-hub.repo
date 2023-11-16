@@ -23,7 +23,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.awt.image.BufferedImage;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,26 +61,7 @@ public class OrderController {
     @PreAuthorize("hasRole('CUSTOMER')")
     @PutMapping("/start")
     public ResponseEntity<OrderResponseDto> startOrder(@RequestParam Long orderId) {
-        Order order = orderService.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Order with " + orderId + " order id not found"));
-
-        if (order.getStatus() != OrderStatusEnum.WAITING_FOR_EXPERT_TO_COME) {
-            throw new IllegalArgumentException("The order with this status cannot be started.");
-        }
-
-        Offer selectedOffer = order.getSelectedOffer();
-        if (selectedOffer == null) {
-            throw new IllegalArgumentException("No offer is selected for this order.");
-        }
-
-        LocalDateTime offeredStartTime = selectedOffer.getOfferedStartTime();
-
-        if (LocalDateTime.now().isBefore(offeredStartTime)) {
-            throw new IllegalArgumentException("The order cannot be started before the offered start time.");
-        }
-
-        order.setStatus(OrderStatusEnum.STARTED);
-        Order updatedOrder = orderService.update(order);
+        Order updatedOrder = orderService.start(orderId);
         OrderResponseDto orderResponseDto = modelMapper.map(updatedOrder, OrderResponseDto.class);
         return new ResponseEntity<>(orderResponseDto, HttpStatus.OK);
     }

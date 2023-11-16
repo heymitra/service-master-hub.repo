@@ -11,7 +11,8 @@ public interface OrderService {
     Optional<Order> findById(Long id);
     List<Order> findAll();
     void deleteById(Long orderId);
-    List<Order> getAvailableOrdersByExpert(Long expertId);
+    List<Order> getAvailableOrdersByExpert();
     Order makePayment(Order order);
     Order completeOrder (Order order);
+    Order start (Long orderId);
 }
