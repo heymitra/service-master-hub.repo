@@ -1,6 +1,7 @@
 package com.example.serviceprovider.service.impl;
 
 import com.example.serviceprovider.exception.InsufficientCreditException;
+import com.example.serviceprovider.exception.InvalidInputException;
 import com.example.serviceprovider.exception.ItemNotFoundException;
 import com.example.serviceprovider.model.*;
 import com.example.serviceprovider.model.enumeration.ExpertStatusEnum;
@@ -10,6 +11,7 @@ import com.example.serviceprovider.service.CustomerService;
 import com.example.serviceprovider.service.ExpertService;
 import com.example.serviceprovider.service.OrderService;
 import com.example.serviceprovider.service.SubServiceService;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,9 +66,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> getAvailableOrdersByExpert(Long expertId) {
-        Expert expert = expertService.findById(expertId)
-                .orElseThrow(() -> new ItemNotFoundException("Expert with ID " + expertId + " not found."));
+    public List<Order> getAvailableOrdersByExpert() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Expert expert = expertService.findByEmail(email)
+                .orElseThrow(() -> new ItemNotFoundException("Expert not found."));
         List<SubService> expertSubServices = expert.getSubServices();
         return repository.findOrdersByStatusAndSubServiceIn(
                 Arrays.asList(OrderStatusEnum.WAITING_FOR_OFFERS, OrderStatusEnum.WAITING_FOR_EXPERT_SELECTION),
@@ -120,6 +123,35 @@ public class OrderServiceImpl implements OrderService {
         expert.setRate(expertScore);
 
         expertService.update(expert);
+        return update(order);
+    }
+
+    @Override
+    public Order start(Long orderId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Order order = findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order with " + orderId + " order id not found"));
+
+        if (!order.getCustomer().getEmail().equals(email))
+            throw new InvalidInputException("You are not allowed to change the status of this order.");
+
+        if (order.getStatus() != OrderStatusEnum.WAITING_FOR_EXPERT_TO_COME) {
+            throw new IllegalArgumentException("The order with this status cannot be started.");
+        }
+
+        Offer selectedOffer = order.getSelectedOffer();
+        if (selectedOffer == null) {
+            throw new IllegalArgumentException("No offer is selected for this order.");
+        }
+
+        LocalDateTime offeredStartTime = selectedOffer.getOfferedStartTime();
+
+        if (LocalDateTime.now().isBefore(offeredStartTime)) {
+            throw new IllegalArgumentException("The order cannot be started before the offered start time.");
+        }
+
+        order.setStatus(OrderStatusEnum.STARTED);
         return update(order);
     }
 
