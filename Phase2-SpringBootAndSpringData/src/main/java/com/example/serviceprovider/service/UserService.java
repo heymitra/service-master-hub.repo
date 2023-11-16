@@ -1,6 +1,7 @@
 package com.example.serviceprovider.service;
 
 import com.example.serviceprovider.model.User;
+import com.example.serviceprovider.model.enumeration.Role;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -12,10 +13,12 @@ public interface UserService {
     Optional<User> findById(Long id);
     List<User> findAll();
     void deleteById(User user);
-    Page<User> searchAndFilterUsers(String role,
+    Page<User> searchAndFilterUsers(Role role,
                                     String name,
                                     String surname,
                                     String email,
                                     String sortBy,
                                     Pageable pageable);
+    Optional<User> findByEmail(String email);
+    void activate(String token);
 }

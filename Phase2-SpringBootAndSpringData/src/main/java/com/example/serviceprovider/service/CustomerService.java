@@ -8,4 +8,6 @@ public interface CustomerService {
     Customer save(Customer customer);
     Customer update(Customer customer);
     Optional<Customer> findById(Long id);
+    Optional<Customer> findByEmail(String email);
+    void activate (Customer customer);
 }

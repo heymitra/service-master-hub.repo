@@ -13,4 +13,6 @@ public interface ExpertService {
     Expert update(Expert expert);
     Expert approveExpert(Long id);
     int viewRate (Long expertId);
+    Optional<Expert> findByEmail(String email);
+    void activate(Expert expert);
 }
