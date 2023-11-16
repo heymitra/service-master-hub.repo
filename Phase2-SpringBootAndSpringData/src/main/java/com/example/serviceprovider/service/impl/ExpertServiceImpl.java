@@ -84,14 +84,6 @@ public class ExpertServiceImpl implements ExpertService {
     }
 
     @Override
-    public int viewRate(Long expertId) {
-        Expert expert = repository.findById(expertId)
-                .orElseThrow(() -> new ItemNotFoundException("Expert not found with ID: " + expertId));
-
-        return expert.getRate();
-    }
-
-    @Override
     public Optional<Expert> findByEmail(String email) {
         return repository.findByEmail(email);
     }

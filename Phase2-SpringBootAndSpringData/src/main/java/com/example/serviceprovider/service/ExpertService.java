@@ -12,7 +12,6 @@ public interface ExpertService {
     Expert save(Expert expert);
     Expert update(Expert expert);
     Expert approveExpert(Long id);
-    int viewRate (Long expertId);
     Optional<Expert> findByEmail(String email);
     void activate(Expert expert);
 }

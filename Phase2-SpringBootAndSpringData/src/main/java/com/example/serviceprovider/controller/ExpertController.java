@@ -4,6 +4,7 @@ import com.example.serviceprovider.dto.ExpertRequestDto;
 import com.example.serviceprovider.dto.ExpertResponseDto;
 import com.example.serviceprovider.exception.DuplicatedInstanceException;
 import com.example.serviceprovider.exception.EmptyFileException;
+import com.example.serviceprovider.exception.ItemNotFoundException;
 import com.example.serviceprovider.model.Expert;
 import com.example.serviceprovider.service.ExpertService;
 import jakarta.validation.Valid;
@@ -11,10 +12,12 @@ import org.modelmapper.ModelMapper;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/expert")
@@ -52,6 +55,7 @@ public class ExpertController {
         return new ResponseEntity<>(expertResponseDto, HttpStatus.CREATED);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/approve")
     public ResponseEntity<ExpertResponseDto> approve(@RequestParam Long expertId) {
         Expert expert = expertService.approveExpert(expertId);
@@ -59,9 +63,11 @@ public class ExpertController {
         return new ResponseEntity<>(expertResponseDto, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasAnyRole('EXPERT')")
     @GetMapping("/rate")
-    public ResponseEntity<Integer> viewRate(@RequestParam Long expertId) {
-        int rate = expertService.viewRate(expertId);
-        return new ResponseEntity<>(rate, HttpStatus.OK);
+    public ResponseEntity<Integer> viewRate(Principal principal) {
+        Expert expert = expertService.findByEmail(principal.getName())
+                .orElseThrow(() -> new ItemNotFoundException("Expert not found."));
+        return new ResponseEntity<>(expert.getRate(), HttpStatus.OK);
     }
 }
