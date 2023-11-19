@@ -31,6 +31,9 @@ public class Expert extends User {
             inverseJoinColumns = @JoinColumn(name = "subservice_id"))
     private List<SubService> subServices = new ArrayList<>();
 
+    @OneToMany(mappedBy = "expert", cascade = CascadeType.ALL)
+    private List<Offer> offers = new ArrayList<>();
+
     @Override
     public boolean isAccountNonLocked() {
         return (getExpertStatus() != ExpertStatusEnum.INACTIVE);
