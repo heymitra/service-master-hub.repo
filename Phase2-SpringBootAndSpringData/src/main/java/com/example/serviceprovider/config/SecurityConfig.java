@@ -27,12 +27,13 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.cors(AbstractHttpConfigurer::disable)
+        http
+                .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(a -> a.anyRequest().permitAll())
-//                .authorizeHttpRequests(a -> a.requestMatchers("/user").hasRole("ADMIN")
-//                        .requestMatchers("/user").hasRole("USER")
-//                        .requestMatchers("expert").hasRole("EXPERT"))
+                .authorizeHttpRequests(a -> a
+                        .requestMatchers("/service", "/subservice", "/expert-subservice", "/admin").hasRole("ADMIN")
+                        .anyRequest().permitAll()
+                )
                 .httpBasic(withDefaults());
         return http.build();
     }
