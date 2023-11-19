@@ -5,7 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.FutureOrPresent;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,6 +24,8 @@ public class Offer extends BaseEntity<Long> {
     private LocalDateTime offeredStartTime;
 
     private int offeredDurationInHours;
+
+    private boolean isSelected;
 
     @ManyToOne
     @JoinColumn(name = "expert_id")
