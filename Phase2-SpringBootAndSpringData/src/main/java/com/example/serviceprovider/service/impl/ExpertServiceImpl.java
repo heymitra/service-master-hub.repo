@@ -4,7 +4,6 @@ import com.example.serviceprovider.exception.ItemNotFoundException;
 import com.example.serviceprovider.model.UserToken;
 import com.example.serviceprovider.model.Expert;
 import com.example.serviceprovider.model.enumeration.Role;
-import com.example.serviceprovider.service.dto.ExpertDTO;
 import com.example.serviceprovider.model.enumeration.ExpertStatusEnum;
 import com.example.serviceprovider.repository.ExpertRepository;
 import com.example.serviceprovider.service.ExpertService;
@@ -14,9 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -25,21 +22,6 @@ public class ExpertServiceImpl implements ExpertService {
     private final ImageUtility imageUtility;
     private final BCryptPasswordEncoder passwordEncoder;
     private final MailSender mailSender;
-
-    @Override
-    public List<ExpertDTO> findAllExperts() {
-        return repository.findAllExperts().stream()
-                .map(expert -> {
-                    ExpertDTO expertDTO = new ExpertDTO();
-                    expertDTO.setName(expert.getName());
-                    expertDTO.setSurname(expert.getSurname());
-                    expertDTO.setEmail(expert.getEmail());
-                    expertDTO.setScore(expert.getRate());
-                    expertDTO.setExpertStatus(expert.getExpertStatus());
-                    return expertDTO;
-                })
-                .collect(Collectors.toList());
-    }
 
     @Override
     public Optional<Expert> findById(Long id) {
@@ -94,5 +76,4 @@ public class ExpertServiceImpl implements ExpertService {
         expert.setExpertStatus(ExpertStatusEnum.AWAITING_APPROVAL);
         update(expert);
     }
-
 }
