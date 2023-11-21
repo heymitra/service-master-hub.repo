@@ -1,20 +1,27 @@
 package com.example.serviceprovider.controller;
 
+import com.example.serviceprovider.dto.PasswordGetter;
+import com.example.serviceprovider.dto.UserReportDto;
 import com.example.serviceprovider.dto.UserResponseDto;
-import com.example.serviceprovider.exception.InvalidInputException;
 import com.example.serviceprovider.model.User;
 import com.example.serviceprovider.model.enumeration.Role;
 import com.example.serviceprovider.service.UserService;
+import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,16 +38,12 @@ public class UserController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EXPERT', 'CUSTOMER')")
     @PutMapping("/change-password")
-    public ResponseEntity<UserResponseDto> changePassword(@RequestParam String password,
+    public ResponseEntity<UserResponseDto> changePassword(@RequestBody @Valid PasswordGetter password,
                                                           Principal principal) {
-        if (!isPasswordValid(password)) {
-            throw new InvalidInputException("Password must be minimum 8 characters, containing at least one lowercase, one uppercase, and one number");
-        }
-
         User user = userService.findByEmail(principal.getName())
-                .orElseThrow(() -> new IllegalArgumentException("User  not found."));
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
 
-        user.setPassword(password);
+        user.setPassword(password.getPassword());
         User updatedUser = userService.update(user);
         UserResponseDto userResponseDto = modelMapper.map(updatedUser, UserResponseDto.class);
         return new ResponseEntity<>(userResponseDto, HttpStatus.OK);
@@ -70,15 +73,40 @@ public class UserController {
         return new ResponseEntity<>(usersDto, HttpStatus.OK);
     }
 
-    private boolean isPasswordValid(String password) {
-        String passwordPattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$";
-        return password.matches(passwordPattern);
-    }
-
     @PreAuthorize("hasAnyRole('CUSTOMER', 'EXPERT')")
     @GetMapping("/activate")
     public ResponseEntity<String> verifyEmail(@RequestParam String token) {
         userService.activate(token);
         return new ResponseEntity<>("Email activated successfully.", HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'EXPERT')")
+    @GetMapping("/credit")
+    public ResponseEntity<Double> getUserCredit(@AuthenticationPrincipal UserDetails userDetails) {
+        String userEmail = userDetails.getUsername();
+        User user = userService.findByEmail(userEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + userEmail));
+        double userCredit = user.getCredit();
+        return ResponseEntity.ok(userCredit);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/expert-report")
+    public List<UserReportDto> getExpertsReport(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime registrationTimeStart,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime registrationTimeEnd,
+            @RequestParam(required = false) Integer minOrders,
+            @RequestParam(required = false) Integer maxOrders) {
+        return userService.getExpertReportDTO(registrationTimeStart, registrationTimeEnd, minOrders, maxOrders);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/customer-report")
+    public List<UserReportDto> getCustomersReport(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime registrationTimeStart,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime registrationTimeEnd,
+            @RequestParam(required = false) Integer minOrders,
+            @RequestParam(required = false) Integer maxOrders) {
+        return userService.getCustomersReportDTO(registrationTimeStart, registrationTimeEnd, minOrders, maxOrders);
     }
 }
