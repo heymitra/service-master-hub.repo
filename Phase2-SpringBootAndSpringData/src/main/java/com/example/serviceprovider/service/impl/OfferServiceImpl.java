@@ -9,6 +9,7 @@ import com.example.serviceprovider.repository.OfferRepository;
 import com.example.serviceprovider.service.ExpertService;
 import com.example.serviceprovider.service.OfferService;
 import com.example.serviceprovider.service.OrderService;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,8 +31,9 @@ public class OfferServiceImpl implements OfferService {
         this.orderService = orderService;
     }
 
-    public Offer save(Offer offer, Long expertId, Long orderId) {
-        Expert expert = expertService.findById(expertId).orElse(null);
+    public Offer save(Offer offer, Long orderId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Expert expert = expertService.findByEmail(email).orElse(null);
         Order order = orderService.findById(orderId).orElse(null);
 
         if (expert == null || order == null) {
@@ -48,6 +50,7 @@ public class OfferServiceImpl implements OfferService {
         offer.setOrder(order);
         offer.setExpert(expert);
         offer.setOfferDateTime(LocalDateTime.now());
+        offer.setSelected(false);
 
         if (!Arrays.asList(OrderStatusEnum.WAITING_FOR_OFFERS, OrderStatusEnum.WAITING_FOR_EXPERT_SELECTION)
                 .contains(order.getStatus())) {
@@ -56,7 +59,7 @@ public class OfferServiceImpl implements OfferService {
         if (offer.getOfferedPrice() < order.getSubService().getBasePrice()) {
             throw new IllegalArgumentException("Proposed price cannot be lower than the base price of the sub-service.");
         }
-        if (offer.getOfferedStartTime().isBefore(order.getCompletionDateTime())) {
+        if (offer.getOfferedStartTime().isBefore(order.getExpectedCompletionTime())) {
             throw new IllegalArgumentException("Start time cannot be before the customer's offered time.");
         }
         return repository.save(offer);
@@ -98,6 +101,8 @@ public class OfferServiceImpl implements OfferService {
             throw new IllegalArgumentException("The selected offer does not belong to the specified order.");
         }
 
+        selectedOffer.setSelected(true);
+
         order.setStatus(OrderStatusEnum.WAITING_FOR_EXPERT_TO_COME);
         order.setSelectedOffer(selectedOffer);
 
@@ -105,4 +110,8 @@ public class OfferServiceImpl implements OfferService {
         repository.save(selectedOffer);
     }
 
+    public List<Offer> getSelectedOffersByExpertAndOrderStatus(OrderStatusEnum orderStatus) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return repository.findSelectedOffersByExpertAndOrderStatus(email, orderStatus);
+    }
 }
