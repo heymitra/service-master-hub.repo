@@ -7,10 +7,10 @@ import com.example.serviceprovider.model.*;
 import com.example.serviceprovider.model.enumeration.ExpertStatusEnum;
 import com.example.serviceprovider.model.enumeration.OrderStatusEnum;
 import com.example.serviceprovider.repository.OrderRepository;
-import com.example.serviceprovider.service.CustomerService;
-import com.example.serviceprovider.service.ExpertService;
-import com.example.serviceprovider.service.OrderService;
-import com.example.serviceprovider.service.SubServiceService;
+import com.example.serviceprovider.service.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,22 +21,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+@RequiredArgsConstructor
 @Service
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository repository;
     private final SubServiceService subServiceService;
     private final CustomerService customerService;
     private final ExpertService expertService;
-
-    public OrderServiceImpl(OrderRepository repository,
-                            SubServiceService subServiceService,
-                            CustomerService customerService,
-                            ExpertService expertService) {
-        this.repository = repository;
-        this.subServiceService = subServiceService;
-        this.customerService = customerService;
-        this.expertService = expertService;
-    }
+    private final ServiceService serviceService;
 
     @Override
     public Order save(Order order, Long subServiceId, Long customerId) {
@@ -50,13 +42,15 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Proposed price cannot be less than the base price of the sub-service.");
         }
 
-        if (order.getCompletionDateTime().isBefore(LocalDateTime.now())) {
+        if (order.getExpectedCompletionTime().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Completion date and time cannot be in the past.");
         }
 
         order.setStatus(OrderStatusEnum.WAITING_FOR_OFFERS);
         order.setSubService(subService);
         order.setCustomer(customer);
+        order.setApplyTime(LocalDateTime.now());
+        order.setRealCompletionTime(null);
         return repository.save(order);
     }
 
@@ -100,7 +94,18 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public Order completeOrder(Order order) {
+    public Order completeOrder(Long orderId) {
+        Order order = findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order with " + orderId + " order id not found."));
+
+        OrderStatusEnum status = order.getStatus();
+        if (status == OrderStatusEnum.COMPLETED || status == OrderStatusEnum.PAID) {
+            throw new IllegalArgumentException("The order has been completed before.");
+        } else if (status != OrderStatusEnum.STARTED) {
+            throw new IllegalArgumentException("The order has not been started yet.");
+        }
+
+
         Offer selectedOffer = order.getSelectedOffer();
         LocalDateTime offeredStartTime = selectedOffer.getOfferedStartTime();
         int offeredDurationInHours = selectedOffer.getOfferedDurationInHours();
@@ -121,6 +126,8 @@ public class OrderServiceImpl implements OrderService {
         }
 
         expert.setRate(expertScore);
+        order.setStatus(OrderStatusEnum.COMPLETED);
+        order.setRealCompletionTime(completionTime);
 
         expertService.update(expert);
         return update(order);
@@ -155,6 +162,32 @@ public class OrderServiceImpl implements OrderService {
         return update(order);
     }
 
+    @Override
+    public Page<Order> searchAndFilterOrders(String status, Pageable pageable) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return repository.searchAndFilterOrders(email, status, pageable);
+    }
+
+    public List<Order> getOrdersByCustomerAndStatus(OrderStatusEnum status) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return repository.findOrdersByCustomerAndStatus(email, status);
+    }
+
+    public List<Order> getOrdersByUser(long userId) {
+        if (customerService.findById(userId).isPresent()) {
+            return repository.findOrdersByCustomerId(userId);
+        } else if (expertService.findById(userId).isPresent()) {
+            return repository.findOrdersByExpertIdAndSelectedOfferIsTrue(userId);
+        } else {
+            throw new InvalidInputException("User with ID " + userId + " not found");
+        }
+    }
+
+    public List<Order> getOrdersByCriteria(
+            LocalDateTime startTime, LocalDateTime endTime,
+            OrderStatusEnum status, Long subServiceId, Long serviceId) {
+        return repository.findOrdersByCriteria(startTime, endTime, status, subServiceId, serviceId);
+    }
 
     @Override
     public Optional<Order> findById(Long id) {
