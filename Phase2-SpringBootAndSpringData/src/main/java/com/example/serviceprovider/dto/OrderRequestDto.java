@@ -20,7 +20,7 @@ public class OrderRequestDto {
     private String workDescription;
 
     @FutureOrPresent(message = "Completion date and time cannot be in the past.")
-    private LocalDateTime completionDateTime;
+    private LocalDateTime expectedCompletionTime;
 
     @NotBlank(message = "Address is required.")
     private String address;
