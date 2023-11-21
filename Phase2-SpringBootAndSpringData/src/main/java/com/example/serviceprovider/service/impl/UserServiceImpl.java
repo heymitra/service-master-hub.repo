@@ -1,5 +1,6 @@
 package com.example.serviceprovider.service.impl;
 
+import com.example.serviceprovider.dto.UserReportDto;
 import com.example.serviceprovider.exception.InvalidInputException;
 import com.example.serviceprovider.model.Customer;
 import com.example.serviceprovider.model.UserToken;
@@ -18,6 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,6 +62,20 @@ public class UserServiceImpl implements UserService {
                                            String sortBy,
                                            Pageable pageable) {
         return repository.searchAndFilterUsers(role, name, surname, email, sortBy, pageable);
+    }
+
+    public List<UserReportDto> getCustomersReportDTO(LocalDateTime registrationTimeStart,
+                                                     LocalDateTime registrationTimeEnd,
+                                                     Integer minOrders,
+                                                     Integer maxOrders) {
+        return repository.getCustomersReportDTO(registrationTimeStart, registrationTimeEnd, minOrders, maxOrders);
+    }
+
+    public List<UserReportDto> getExpertReportDTO(LocalDateTime registrationTimeStart,
+                                                  LocalDateTime registrationTimeEnd,
+                                                  Integer minOrders,
+                                                  Integer maxOrders) {
+        return repository.getExpertReportDTO(registrationTimeStart, registrationTimeEnd, minOrders, maxOrders);
     }
 
     @Override
