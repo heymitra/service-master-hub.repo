@@ -2,19 +2,19 @@ package com.example.serviceprovider.controller;
 
 import cn.apiclub.captcha.Captcha;
 import cn.apiclub.captcha.gimpy.DropShadowGimpyRenderer;
-import com.example.serviceprovider.dto.OrderRequestDto;
-import com.example.serviceprovider.dto.OrderByIdsDto;
-import com.example.serviceprovider.dto.OrderResponseDto;
+import com.example.serviceprovider.dto.*;
 import com.example.serviceprovider.exception.InvalidInputException;
 import com.example.serviceprovider.exception.ItemNotFoundException;
-import com.example.serviceprovider.model.Offer;
 import com.example.serviceprovider.model.Order;
 import com.example.serviceprovider.model.enumeration.OrderStatusEnum;
 import com.example.serviceprovider.service.OrderService;
 import com.example.serviceprovider.utility.ImageUtility;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,6 +26,10 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@RequiredArgsConstructor
 @CrossOrigin("*")
 @RestController
 @RequestMapping("/order")
@@ -33,12 +37,7 @@ public class OrderController {
     private final OrderService orderService;
     private final ModelMapper modelMapper;
     private final ImageUtility imageUtility;
-
-    public OrderController(OrderService orderService, ModelMapper modelMapper, ImageUtility imageUtility) {
-        this.orderService = orderService;
-        this.modelMapper = modelMapper;
-        this.imageUtility = imageUtility;
-    }
+    private final Logger logger = LoggerFactory.getLogger(OrderController.class);
 
     @GetMapping("/payment-form")
     public String showPaymentForm() {
@@ -62,27 +61,17 @@ public class OrderController {
     @PutMapping("/start")
     public ResponseEntity<OrderResponseDto> startOrder(@RequestParam Long orderId) {
         Order updatedOrder = orderService.start(orderId);
-        OrderResponseDto orderResponseDto = modelMapper.map(updatedOrder, OrderResponseDto.class);
+        OrderResponseDto orderResponseDto = new OrderResponseDto();
+        orderResponseDto = orderResponseDto.fromOrder(updatedOrder, modelMapper);
         return new ResponseEntity<>(orderResponseDto, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @PutMapping("/complete")
     public ResponseEntity<OrderResponseDto> completeOrder(@RequestParam Long orderId) {
-        Order order = orderService.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Order with " + orderId + " order id not found."));
-
-        OrderStatusEnum status = order.getStatus();
-        if (status == OrderStatusEnum.COMPLETED || status == OrderStatusEnum.PAID) {
-            throw new IllegalArgumentException("The order has been completed before.");
-        } else if (status != OrderStatusEnum.STARTED) {
-            throw new IllegalArgumentException("The order has not been started yet.");
-        }
-
-        order.setStatus(OrderStatusEnum.COMPLETED);
-
-        Order completedOrder = orderService.completeOrder(order);
-        OrderResponseDto orderResponseDto = modelMapper.map(orderService, OrderResponseDto.class);
+        Order completedOrder = orderService.completeOrder(orderId);
+        OrderResponseDto orderResponseDto = new OrderResponseDto();
+        orderResponseDto = orderResponseDto.fromOrder(completedOrder, modelMapper);
         return new ResponseEntity<>(orderResponseDto, HttpStatus.OK);
     }
 
@@ -171,5 +160,33 @@ public class OrderController {
         byte[] imageBytes = imageUtility.convertImageToByteArray(image);
 
         return new ResponseEntity<>(imageBytes, headers, 200);
+    }
+
+    //1.
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @GetMapping("/my-orders-criteria")
+    public Page<OrderResponseDto> searchAndFilterOrders(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<Order> orders = orderService.searchAndFilterOrders(status, PageRequest.of(page, size));
+        return orders.map(order -> modelMapper.map(order, OrderResponseDto.class));
+    }
+
+    //2.
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @GetMapping("/my-orders")
+    public List<OrderReportDto> getOrdersByCustomerAndStatus(@RequestParam(required = false) String status) {
+        OrderStatusEnum orderStatus = null;
+        if (status != null) {
+            try {
+                orderStatus = OrderStatusEnum.valueOf(status); // Convert status string to OrderStatusEnum
+            } catch (IllegalArgumentException e) {
+                logger.error("Error: Invalid OrderStatusEnum value provided: {}", status);
+            }
+        }
+        List<Order> orders = orderService.getOrdersByCustomerAndStatus(orderStatus);
+        OrderReportDto orderReportDTO = new OrderReportDto();
+        return orderReportDTO.getOrderDetailsDTOS(orders, modelMapper);
     }
 }
