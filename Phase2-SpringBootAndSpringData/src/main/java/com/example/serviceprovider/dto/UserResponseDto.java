@@ -1,5 +1,6 @@
 package com.example.serviceprovider.dto;
 
+import com.example.serviceprovider.model.enumeration.Role;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,4 +19,5 @@ public class UserResponseDto {
     private String email;
     private double credit;
     private LocalDateTime registrationDateTime;
+    private Role role;
 }
