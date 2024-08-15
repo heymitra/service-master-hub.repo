@@ -84,7 +84,9 @@ public class OrderServiceImpl implements OrderService {
             customerService.update(customer);
 
             order.setStatus(OrderStatusEnum.PAID);
-            order.getSelectedOffer().getExpert().setCredit(orderPrice * 0.7);
+            double currentCredit = order.getSelectedOffer().getExpert().getCredit();
+            double credit = currentCredit + orderPrice * 0.7;
+            order.getSelectedOffer().getExpert().setCredit(credit);
             return repository.save(order);
 
         } else {
